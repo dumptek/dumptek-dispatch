@@ -752,7 +752,7 @@
             <!-- Top black bar -->
             <div class="topbar">
                 <div class="topbar-left">
-                    Currently logged in as: BH INC
+                    Currently logged in as: Example Company
                 </div>
                 <div class="topbar-right">
                     <a href="#" class="topbar-link">Help</a>
@@ -864,6 +864,7 @@
                     <span class="batch-count"><span id="selectedCount">0</span> selected</span>
                     <button class="btn-batch" id="deleteBtn">Delete</button>
                     <button class="btn-batch" id="duplicateBtn">Duplicate</button>
+                    <button class="btn-batch" id="sendBtn">Send</button>
                     <button class="btn-batch" id="updateBtn">Update</button>
                 </div>
 
@@ -1330,6 +1331,7 @@
             document.getElementById('deleteBtn').addEventListener('click', deleteSelected);
             document.getElementById('updateBtn').addEventListener('click', openBatchModal);
             document.getElementById('duplicateBtn').addEventListener('click', duplicateSelected);
+            document.getElementById('sendBtn').addEventListener('click', sendSelected);
 
             // New Dispatch button
             document.getElementById('newDispatchBtn').addEventListener('click', openCreateModal);
@@ -1465,77 +1467,76 @@
         }
 
         function renderListView() {
-    const tableBody = document.getElementById('tableBody');
-    tableBody.innerHTML = '';
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
 
-    if (currentGroupBy === 'none') {
-        filteredDispatches.forEach(dispatch => {
-            tableBody.appendChild(createTableRow(dispatch));
-        });
-    } else {
-        const groups = {};
-        filteredDispatches.forEach(dispatch => {
-            const groupKey = groupDispatch(dispatch, currentGroupBy);
-            if (!groups[groupKey]) groups[groupKey] = [];
-            groups[groupKey].push(dispatch);
-        });
+            if (currentGroupBy === 'none') {
+                filteredDispatches.forEach(dispatch => {
+                    tableBody.appendChild(createTableRow(dispatch));
+                });
+            } else {
+                const groups = {};
+                filteredDispatches.forEach(dispatch => {
+                    const groupKey = groupDispatch(dispatch, currentGroupBy);
+                    if (!groups[groupKey]) groups[groupKey] = [];
+                    groups[groupKey].push(dispatch);
+                });
 
-        Object.keys(groups).sort().forEach(groupKey => {
-            // Group header row with "select all in group" checkbox
-            const headerRow = document.createElement('tr');
-            headerRow.className = 'group-header';
-            headerRow.innerHTML = `
-                <td>
-                    <input type="checkbox" class="group-select" data-group="${groupKey}">
-                </td>
-                <td colspan="16">
-                    <strong>${groupKey}</strong> (${groups[groupKey].length})
-                </td>
-            `;
-            tableBody.appendChild(headerRow);
+                Object.keys(groups).sort().forEach(groupKey => {
+                    // Group header row with "select all in group" checkbox
+                    const headerRow = document.createElement('tr');
+                    headerRow.className = 'group-header';
+                    headerRow.innerHTML = `
+                        <td>
+                            <input type="checkbox" class="group-select" data-group="${groupKey}">
+                        </td>
+                        <td colspan="16">
+                            <strong>${groupKey}</strong> (${groups[groupKey].length})
+                        </td>
+                    `;
+                    tableBody.appendChild(headerRow);
 
-            // Group rows, tagged with data-group
-            groups[groupKey].forEach(dispatch => {
-                const row = createTableRow(dispatch);
-                row.dataset.group = groupKey;
-                tableBody.appendChild(row);
-            });
-        });
-    }
-
-    // Row click / selection
-    document.querySelectorAll('tbody tr:not(.group-header)').forEach(row => {
-        const checkbox = row.querySelector('input[type="checkbox"]');
-        checkbox?.addEventListener('change', updateSelectedCount);
-        row.addEventListener('click', (e) => {
-            if (e.target.type !== 'checkbox') {
-                const dispatchId = row.dataset.id;
-                const dispatch = dispatches.find(d => d.id === dispatchId);
-                if (dispatch) openEditModal(dispatch);
+                    // Group rows, tagged with data-group
+                    groups[groupKey].forEach(dispatch => {
+                        const row = createTableRow(dispatch);
+                        row.dataset.group = groupKey;
+                        tableBody.appendChild(row);
+                    });
+                });
             }
-        });
-        row.style.cursor = 'pointer';
-    });
 
-    // Group "select all" behavior
-    document.querySelectorAll('.group-select').forEach(groupCheckbox => {
-        groupCheckbox.addEventListener('change', (e) => {
-            const groupKey = e.target.dataset.group;
-            const checked = e.target.checked;
-
-            // Toggle all checkboxes in this group
-            document.querySelectorAll('tbody tr').forEach(row => {
-                if (row.dataset.group === groupKey) {
-                    const cb = row.querySelector('input[type="checkbox"]');
-                    if (cb) cb.checked = checked;
-                }
+            // Row click / selection
+            document.querySelectorAll('tbody tr:not(.group-header)').forEach(row => {
+                const checkbox = row.querySelector('input[type="checkbox"]');
+                checkbox?.addEventListener('change', updateSelectedCount);
+                row.addEventListener('click', (e) => {
+                    if (e.target.type !== 'checkbox') {
+                        const dispatchId = row.dataset.id;
+                        const dispatch = dispatches.find(d => d.id === dispatchId);
+                        if (dispatch) openEditModal(dispatch);
+                    }
+                });
+                row.style.cursor = 'pointer';
             });
 
-            updateSelectedCount();
-        });
-    });
-}
+            // Group "select all" behavior
+            document.querySelectorAll('.group-select').forEach(groupCheckbox => {
+                groupCheckbox.addEventListener('change', (e) => {
+                    const groupKey = e.target.dataset.group;
+                    const checked = e.target.checked;
 
+                    // Toggle all checkboxes in this group
+                    document.querySelectorAll('tbody tr').forEach(row => {
+                        if (row.dataset.group === groupKey) {
+                            const cb = row.querySelector('input[type="checkbox"]');
+                            if (cb) cb.checked = checked;
+                        }
+                    });
+
+                    updateSelectedCount();
+                });
+            });
+        }
 
         function createTableRow(dispatch) {
             const row = document.createElement('tr');
@@ -1626,25 +1627,25 @@
         }
 
         function updateSelectedCount() {
-    const checked = document.querySelectorAll('tbody input[type="checkbox"]:checked').length;
-    selectedDispatches.clear();
-    document.querySelectorAll('tbody input[type="checkbox"]:checked').forEach(checkbox => {
-        selectedDispatches.add(checkbox.value);
-    });
+            const checked = document.querySelectorAll('tbody input[type="checkbox"]:checked').length;
+            selectedDispatches.clear();
+            document.querySelectorAll('tbody input[type="checkbox"]:checked').forEach(checkbox => {
+                selectedDispatches.add(checkbox.value);
+            });
 
-    // Reset group header checkboxes so they don't get out of sync
-    document.querySelectorAll('.group-select').forEach(cb => {
-        cb.checked = false;
-    });
+            // Reset group header checkboxes so they don't get out of sync
+            document.querySelectorAll('.group-select').forEach(cb => {
+                cb.checked = false;
+            });
 
-    const batchActions = document.getElementById('batchActions');
-    if (checked > 0) {
-        batchActions.classList.add('visible');
-        document.getElementById('selectedCount').textContent = checked;
-    } else {
-        batchActions.classList.remove('visible');
-    }
-}
+            const batchActions = document.getElementById('batchActions');
+            if (checked > 0) {
+                batchActions.classList.add('visible');
+                document.getElementById('selectedCount').textContent = checked;
+            } else {
+                batchActions.classList.remove('visible');
+            }
+        }
 
         function deleteSelected() {
             if (selectedDispatches.size === 0) return;
@@ -1655,31 +1656,52 @@
         }
 
         function duplicateSelected() {
-    if (selectedDispatches.size === 0) return;
+            if (selectedDispatches.size === 0) return;
 
-    const newDispatches = [];
+            const newDispatches = [];
 
-    dispatches.forEach(d => {
-        if (!selectedDispatches.has(d.id)) return;
+            dispatches.forEach(d => {
+                if (!selectedDispatches.has(d.id)) return;
 
-        const clone = {
-            ...d,
-            id: generateNewDispatchId(),      // new Dispatch ID
-            dispatchDate: new Date(d.dispatchDate), // copy date
-            status: 'Draft',                  // NEW: duplicated dispatches start as Draft
-            ticketId: ''                      // optional: clear ticket link on duplicates
-        };
+                const clone = {
+                    ...d,
+                    id: generateNewDispatchId(),      // new Dispatch ID
+                    dispatchDate: new Date(d.dispatchDate), // copy date
+                    status: 'Draft',                  // duplicated dispatches start as Draft
+                    ticketId: ''                      // clear ticket link on duplicates
+                };
 
-        newDispatches.push(clone);
-    });
+                newDispatches.push(clone);
+            });
 
-    dispatches = dispatches.concat(newDispatches);
+            dispatches = dispatches.concat(newDispatches);
 
-    // Clear selection so we don't keep duplicating the same ones
-    selectedDispatches.clear();
-    document.getElementById('selectAll').checked = false;
-    applyFilters();
-}
+            // Clear selection so we don't keep duplicating the same ones
+            selectedDispatches.clear();
+            document.getElementById('selectAll').checked = false;
+            applyFilters();
+        }
+
+        // NEW: send selected dispatches (change status to "Sent")
+        function sendSelected() {
+            if (selectedDispatches.size === 0) return;
+
+            const confirmSend = confirm(
+                'Send dispatch to DumpTek Driver App?\n\nThis will change the status to "Sent" for all selected dispatches.'
+            );
+
+            if (!confirmSend) return;
+
+            dispatches.forEach(d => {
+                if (selectedDispatches.has(d.id)) {
+                    d.status = 'Sent';
+                }
+            });
+
+            selectedDispatches.clear();
+            document.getElementById('selectAll').checked = false;
+            applyFilters();
+        }
 
         // ========== MODALS ==========
         function showDetailModal(dispatch) {
