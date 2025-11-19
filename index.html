@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DumpTek Dispatch Board</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: #f3f3f3;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 220px;
+            background: #2e2e2e;
+            border-right: 1px solid #1f1f1f;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            color: #f5f5f5;
+            transition: width 0.2s ease;
+        }
+
+        .sidebar-header {
+            padding: 16px 18px;
+            border-bottom: 1px solid #1f1f1f;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-img {
+            max-width: 120px;
+            height: auto;
+            display: block;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 12px 0;
+            flex: 1;
+        }
+
+        .nav-section {
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 1px solid #3a3a3a;
+        }
+
+        .nav-item {
+            padding: 9px 18px;
+            margin: 2px 0;
+            cursor: pointer;
+            transition: all 0.15s;
+            color: #e0e0e0;
+            font-size: 13px;
+        }
+
+        .nav-item:hover {
+            background: #3c3c3c;
+            color: #ffffff;
+        }
+
+        .nav-item.active {
+            background: #ffffff;
+            color: #222;
+            font-weight: 600;
+        }
+
+        .sidebar.collapsed {
+            width: 64px;
+        }
+
+        .sidebar.collapsed .sidebar-header {
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .logo-img {
+            max-width: 32px;
+        }
+
+        .sidebar.collapsed .nav-item {
+            text-align: center;
+            padding-left: 8px;
+            padding-right: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: clip;
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Top black bar */
+        .topbar {
+            background: #111111;
+            color: #ffffff;
+            padding: 10px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        .topbar-left {
+            font-weight: 500;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .topbar-link {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .topbar-link:hover {
+            text-decoration: underline;
+        }
+
+        .user-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #222;
+            border-radius: 20px;
+            padding: 4px 10px;
+        }
+
+        .user-initials {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            color: #111;
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-name {
+            font-size: 12px;
+        }
+
+        .topbar-exit {
+            border: none;
+            background: transparent;
+            color: #ffffff;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .topbar-exit:hover {
+            text-decoration: underline;
+        }
+
+        .header {
+            background: #f3f3f3;
+            padding: 18px 32px 8px 32px;
+        }
+
+        .header-title {
+            font-size: 26px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 32px 24px 32px;
+        }
+
+        .sidebar-toggle-btn {
+            display: none;
+        }
+
+        /* Toolbar card */
+        .toolbar {
+            background: #ffffff;
+            border-radius: 4px;
+            border: 1px solid #dddddd;
+            padding: 16px 18px 12px 18px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 18px;
+            align-items: flex-end;
+        }
+
+        .toolbar-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .toolbar-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input[type="date"],
+        input[type="text"],
+        select {
+            padding: 7px 9px;
+            border: 1px solid #cccccc;
+            border-radius: 3px;
+            font-size: 13px;
+            font-family: inherit;
+            background: white;
+            min-width: 140px;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #0070c9;
+            box-shadow: 0 0 0 1px #0070c9;
+        }
+
+        textarea {
+            padding: 7px 9px;
+            border-radius: 3px;
+            border: 1px solid #cccccc;
+            font-size: 13px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .status-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 12px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+        }
+
+        input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+        }
+
+        .view-toggle {
+            margin-left: auto;
+            display: flex;
+            gap: 4px;
+        }
+
+        .btn-view {
+            padding: 6px 10px;
+            border-radius: 3px;
+            border: 1px solid #cccccc;
+            background: #ffffff;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .btn-view.active {
+            background: #0070c9;
+            color: #ffffff;
+            border-color: #0070c9;
+        }
+
+        .btn-primary {
+            padding: 7px 12px;
+            border-radius: 3px;
+            border: none;
+            background: #0070c9;
+            color: #ffffff;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background: #005fa8;
+        }
+
+        /* Batch Actions bar */
+        .batch-actions {
+            background: #0070c9;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 3px;
+            margin-bottom: 10px;
+            display: none;
+            gap: 10px;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .batch-actions.visible {
+            display: flex;
+        }
+
+        .batch-count {
+            font-weight: 500;
+            margin-right: 8px;
+        }
+
+        .btn-batch {
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-batch:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* List View – table */
+        .table-container {
+            background: white;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid #dddddd;
+            display: none;
+        }
+
+        .table-container.visible {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        thead {
+            background: #f3f3f3;
+            border-bottom: 1px solid #dddddd;
+        }
+
+        th {
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+            color: #444;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 9px 14px;
+            border-bottom: 1px solid #eeeeee;
+        }
+
+        tbody tr:hover {
+            background: #fafafa;
+            cursor: pointer;
+        }
+
+        .group-header {
+            background: #f3f3f3;
+            font-weight: 600;
+            color: #444;
+        }
+
+        tbody tr.group-header:hover {
+            background: #ececec;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .status-draft {
+            background: #eef;
+            color: #3a3a88;
+        }
+
+        .status-sent {
+            background: #e8eaed;
+            color: #555;
+        }
+
+        .status-viewed {
+            background: #d7ecff;
+            color: #005fa8;
+        }
+
+        .status-in-progress {
+            background: #fff4d9;
+            color: #b36b00;
+        }
+
+        .status-complete {
+            background: #d4edda;
+            color: #256026;
+        }
+
+        .text-truncate {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Board View */
+        .board-container {
+            display: none;
+            gap: 16px;
+            overflow-x: auto;
+            padding-bottom: 16px;
+        }
+
+        .board-container.visible {
+            display: flex;
+        }
+
+        .board-column {
+            flex: 0 0 320px;
+            background: #f3f3f3;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 260px);
+            border: 1px solid #dddddd;
+        }
+
+        .board-column-header {
+            padding: 10px 12px;
+            border-bottom: 1px solid #dddddd;
+            background: #ffffff;
+        }
+
+        .column-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .column-count {
+            font-size: 11px;
+            color: #666;
+            background: #e8eaed;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .board-column-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dispatch-card {
+            background: white;
+            border: 1px solid #dddddd;
+            border-radius: 3px;
+            padding: 9px 10px;
+            cursor: pointer;
+            transition: box-shadow 0.15s, transform 0.15s;
+        }
+
+        .dispatch-card:hover {
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .card-id {
+            font-weight: 600;
+            color: #0070c9;
+            font-size: 12px;
+        }
+
+        .card-project {
+            font-weight: 500;
+            color: #333;
+            margin-top: 3px;
+            font-size: 13px;
+        }
+
+        .card-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-top: 6px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .card-notes {
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid #eeeeee;
+            font-size: 12px;
+            color: #666;
+            max-height: 40px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.visible {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 4px;
+            max-width: 720px;
+            width: 95%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #777;
+        }
+
+        .modal-body {
+            padding: 20px 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px 18px;
+        }
+
+        .modal-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 3px;
+        }
+
+        .modal-value {
+            font-size: 14px;
+            color: #333;
+            word-break: break-word;
+        }
+
+        .modal-field.full {
+            grid-column: 1 / -1;
+        }
+
+        .modal-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            margin-bottom: 4px;
+            color: #555;
+        }
+
+        .modal-note {
+            font-size: 11px;
+            color: #777;
+            margin-top: 4px;
+        }
+
+        .modal-footer {
+            padding: 0 24px 20px 24px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .btn-secondary {
+            padding: 7px 12px;
+            border-radius: 3px;
+            border: 1px solid #cccccc;
+            background: #ffffff;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c5c5c5;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #b0b0b0;
+        }
+
+        /* Responsive tweaks */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 180px;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .view-toggle {
+                margin-left: 0;
+            }
+
+            th, td {
+                padding: 8px 10px;
+                font-size: 12px;
+            }
+
+            .text-truncate {
+                max-width: 100px;
+            }
+
+            .board-column {
+                flex: 0 0 260px;
+            }
+
+            .modal-body {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <!-- Replace src with your real DumpTek logo path -->
+                <img src="dumptek-logo-white.png" alt="DumpTek" class="logo-img">
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">Dashboard</li>
+                <li class="nav-item">Clients</li>
+                <li class="nav-item">Projects</li>
+                <li class="nav-item">Sites</li>
+                <li class="nav-item active">Dispatch</li>
+                <li class="nav-item">Materials</li>
+                <li class="nav-item">Vehicles</li>
+                <li class="nav-item">Drivers</li>
+                <li class="nav-item">Managers</li>
+                <li class="nav-item">Reports</li>
+
+                <div class="nav-section">
+                    <li class="nav-item">Company Settings</li>
+                    <li class="nav-item">Admin Settings</li>
+                </div>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main">
+            <!-- Top black bar -->
+            <div class="topbar">
+                <div class="topbar-left">
+                    Currently logged in as: BH INC
+                </div>
+                <div class="topbar-right">
+                    <a href="#" class="topbar-link">Help</a>
+                    <div class="user-pill">
+                        <span class="user-initials">DT</span>
+                        <span class="user-name">DumpTek Admin</span>
+                    </div>
+                    <button class="topbar-exit">Exit access ✕</button>
+                </div>
+            </div>
+
+            <header class="header">
+                <h1 class="header-title">Dispatch Board</h1>
+                <button id="sidebarToggle" class="sidebar-toggle-btn" title="Toggle sidebar">☰</button>
+            </header>
+
+            <div class="content">
+                <!-- Toolbar -->
+                <div class="toolbar">
+                    <div class="toolbar-group">
+                        <label class="toolbar-label">Start</label>
+                        <input type="date" id="dateFrom" />
+                    </div>
+
+                    <div class="toolbar-group">
+                        <label class="toolbar-label">End</label>
+                        <input type="date" id="dateTo" />
+                    </div>
+
+                    <div class="toolbar-group">
+                        <label class="toolbar-label">Project</label>
+                        <select id="projectFilter">
+                            <option value="">All Projects</option>
+                        </select>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <label class="toolbar-label">Driver</label>
+                        <select id="driverFilter">
+                            <option value="">All Drivers</option>
+                        </select>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <label class="toolbar-label">Search</label>
+                        <input type="text" id="searchInput" placeholder="Search..." style="min-width: 150px;" />
+                    </div>
+
+                    <div class="toolbar-group">
+                        <label class="toolbar-label">Sort</label>
+                        <select id="sortBy">
+                            <option value="dateNewest">Dispatch Date (Newest)</option>
+                            <option value="dateOldest">Dispatch Date (Oldest)</option>
+                            <option value="driverAz">Driver Name (A-Z)</option>
+                            <option value="projectAz">Project Name (A-Z)</option>
+                        </select>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <label class="toolbar-label">Group by</label>
+                        <select id="groupBy">
+                            <option value="none">None</option>
+                            <option value="status">Status</option>
+                            <option value="driver">Driver</option>
+                            <option value="truck">Truck</option>
+                            <option value="trailer">Trailer</option>
+                            <option value="project">Project</option>
+                        </select>
+                    </div>
+
+                    <div class="toolbar-group">
+                        <label class="toolbar-label">Status</label>
+                        <div class="status-filters">
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="Draft" class="status-check" checked />
+                                Draft
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="Sent" class="status-check" checked />
+                                Sent
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="Viewed" class="status-check" checked />
+                                Viewed
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="In Progress" class="status-check" checked />
+                                In Progress
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="Complete" class="status-check" checked />
+                                Complete
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="toolbar-group" style="margin-left:auto;">
+                        <button class="btn-primary" id="newDispatchBtn">+ Add dispatch</button>
+                    </div>
+
+                    <div class="view-toggle">
+                        <button class="btn-view active" data-view="list">List</button>
+                        <button class="btn-view" data-view="board">Board</button>
+                    </div>
+                </div>
+
+                <!-- Batch Actions -->
+                <div class="batch-actions" id="batchActions">
+                    <span class="batch-count"><span id="selectedCount">0</span> selected</span>
+                    <button class="btn-batch" id="deleteBtn">Delete</button>
+                    <button class="btn-batch" id="duplicateBtn">Duplicate</button>
+                    <button class="btn-batch" id="updateBtn">Update</button>
+                </div>
+
+                <!-- List View -->
+                <div class="table-container visible" id="listView">
+                    <table id="dispatchTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;"><input type="checkbox" id="selectAll" /></th>
+                                <th>Dispatch ID</th>
+                                <th>Dispatch Date</th>
+                                <th>Status</th>
+                                <th>Driver</th>
+                                <th>Truck</th>
+                                <th>Trailer</th>
+                                <th>Project</th>
+                                <th>Load Site</th>
+                                <th>Dump Site</th>
+                                <th>Material</th>
+                                <th>Precheck</th>
+                                <th>Leave Yard</th>
+                                <th>On Job</th>
+                                <th>Site Contact</th>
+                                <th>Notes</th>
+                                <th>Ticket ID</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Board View -->
+                <div class="board-container" id="boardView"></div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <div class="empty-icon">📭</div>
+                    <div class="empty-title">No dispatches found</div>
+                    <p>Try adjusting your filters or create a new dispatch.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Dispatch Details</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- Create Dispatch Modal -->
+    <div class="modal" id="createModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">New Dispatch</h2>
+                <button class="modal-close" onclick="closeCreateModal()">&times;</button>
+            </div>
+            <form id="createForm">
+                <div class="modal-body">
+                    <div class="modal-field">
+                        <div class="modal-label">Dispatch Date</div>
+                        <input type="date" id="newDispatchDate">
+                    </div>
+                    <div class="modal-field">
+                        <div class="modal-label">Status</div>
+                        <select id="newStatus"></select>
+                    </div>
+                    <div class="modal-field">
+                        <div class="modal-label">Driver</div>
+                        <select id="newDriverId"></select>
+                    </div>
+                    <div class="modal-field">
+                        <div class="modal-label">Truck</div>
+                        <select id="newTruckId"></select>
+                    </div>
+                    <div class="modal-field">
+                        <div class="modal-label">Trailer</div>
+                        <select id="newTrailerId"></select>
+                    </div>
+                    <div class="modal-field">
+                        <div class="modal-label">Project</div>
+                        <select id="newProjectId"></select>
+                    </div>
+                    <div class="modal-field full">
+                        <div class="modal-label">Notes</div>
+                        <textarea id="newNotes" placeholder="Special instructions, notes, etc."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeCreateModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Create Dispatch</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Dispatch Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit Dispatch</h2>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form id="editForm">
+                <div class="modal-body">
+                    <div class="modal-field">
+                        <div class="modal-label">Dispatch Date</div>
+                        <input type="date" id="editDispatchDate">
+                    </div>
+                    <div class="modal-field">
+                        <div class="modal-label">Status</div>
+                        <select id="editStatus"></select>
+                    </div>
+                    <div class="modal-field">
+                        <div class="modal-label">Driver</div>
+                        <select id="editDriverId"></select>
+                    </div>
+                    <div class="modal-field">
+                        <div class="modal-label">Truck</div>
+                        <select id="editTruckId"></select>
+                    </div>
+                    <div class="modal-field">
+                        <div class="modal-label">Trailer</div>
+                        <select id="editTrailerId"></select>
+                    </div>
+                    <div class="modal-field">
+                        <div class="modal-label">Project</div>
+                        <select id="editProjectId"></select>
+                    </div>
+                    <div class="modal-field full">
+                        <div class="modal-label">Notes</div>
+                        <textarea id="editNotes"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Batch Update Modal -->
+    <div class="modal" id="batchModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Batch Update Dispatches</h2>
+                <button class="modal-close" onclick="closeBatchModal()">&times;</button>
+            </div>
+            <form id="batchForm">
+                <div class="modal-body">
+                    <div class="modal-field full">
+                        <div class="modal-label">Selected Dispatches</div>
+                        <div class="modal-value">
+                            <span id="batchCountLabel">0</span> dispatch(es) will be updated.
+                            <div class="modal-note">Check only the fields you want to update. Unchecked fields will remain unchanged.</div>
+                        </div>
+                    </div>
+
+                    <div class="modal-field">
+                        <div class="modal-toggle">
+                            <input type="checkbox" id="batchChangeDate">
+                            <span>Update Date</span>
+                        </div>
+                        <input type="date" id="batchDispatchDate" disabled>
+                    </div>
+
+                    <div class="modal-field">
+                        <div class="modal-toggle">
+                            <input type="checkbox" id="batchChangeStatus">
+                            <span>Update Status</span>
+                        </div>
+                        <select id="batchStatus" disabled></select>
+                    </div>
+
+                    <div class="modal-field">
+                        <div class="modal-toggle">
+                            <input type="checkbox" id="batchChangeDriver">
+                            <span>Update Driver</span>
+                        </div>
+                        <select id="batchDriverId" disabled></select>
+                    </div>
+
+                    <div class="modal-field">
+                        <div class="modal-toggle">
+                            <input type="checkbox" id="batchChangeTruck">
+                            <span>Update Truck</span>
+                        </div>
+                        <select id="batchTruckId" disabled></select>
+                    </div>
+
+                    <div class="modal-field">
+                        <div class="modal-toggle">
+                            <input type="checkbox" id="batchChangeTrailer">
+                            <span>Update Trailer</span>
+                        </div>
+                        <select id="batchTrailerId" disabled></select>
+                    </div>
+
+                    <div class="modal-field">
+                        <div class="modal-toggle">
+                            <input type="checkbox" id="batchChangeProject">
+                            <span>Update Project (and related sites/material/contact)</span>
+                        </div>
+                        <select id="batchProjectId" disabled></select>
+                    </div>
+
+                    <div class="modal-field full">
+                        <div class="modal-toggle">
+                            <input type="checkbox" id="batchChangeNotes">
+                            <span>Update Notes</span>
+                        </div>
+                        <textarea id="batchNotes" disabled placeholder="New notes to apply to all selected dispatches"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeBatchModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Apply to Selected</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ========== DATA INITIALIZATION ==========
+        const mockData = {
+            drivers: Array.from({ length: 10 }, (_, i) => ({
+                id: `driver-${i + 1}`,
+                name: `Driver ${i + 1}`
+            })),
+            trucks: Array.from({ length: 10 }, (_, i) => ({
+                id: `truck-${i + 1}`,
+                name: `Truck ${i + 1}`
+            })),
+            trailers: Array.from({ length: 10 }, (_, i) => ({
+                id: `trailer-${i + 1}`,
+                name: `Trailer ${i + 1}`
+            })),
+            projects: Array.from({ length: 10 }, (_, i) => ({
+                id: `project-${i + 1}`,
+                name: `Project ${i + 1}`,
+                loadSite: `Load Site ${i + 1}`,
+                dumpSite: `Dump Site ${i + 1}`,
+                material: `Material ${i + 1}`,
+                siteContact: `Contact ${i + 1} 555-01${String(i + 1).padStart(2, '0')}`
+            }))
+        };
+
+        const STATUS_OPTIONS = ['Draft', 'Sent', 'Viewed', 'In Progress', 'Complete'];
+
+        let dispatches = [];
+        let filteredDispatches = [];
+        let currentView = 'list';
+        let currentGroupBy = 'status';
+        let selectedDispatches = new Set();
+        let nextDispatchNumber = 1001;
+        let editingDispatchId = null;
+
+        function generateNewDispatchId() {
+            return `D-${nextDispatchNumber++}`;
+        }
+
+        // ========== UI INITIALIZATION ==========
+        function initializeUI() {
+            // Populate project dropdown (filters)
+            const projectFilter = document.getElementById('projectFilter');
+            mockData.projects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project.id;
+                option.textContent = project.name;
+                projectFilter.appendChild(option);
+            });
+
+            // Populate driver dropdown (filters)
+            const driverFilter = document.getElementById('driverFilter');
+            mockData.drivers.forEach(driver => {
+                const option = document.createElement('option');
+                option.value = driver.id;
+                option.textContent = driver.name;
+                driverFilter.appendChild(option);
+            });
+
+            // Populate create-dispatch selects
+            const newDriverSelect = document.getElementById('newDriverId');
+            mockData.drivers.forEach(driver => {
+                const option = document.createElement('option');
+                option.value = driver.id;
+                option.textContent = driver.name;
+                newDriverSelect.appendChild(option);
+            });
+
+            const newTruckSelect = document.getElementById('newTruckId');
+            mockData.trucks.forEach(truck => {
+                const option = document.createElement('option');
+                option.value = truck.id;
+                option.textContent = truck.name;
+                newTruckSelect.appendChild(option);
+            });
+
+            const newTrailerSelect = document.getElementById('newTrailerId');
+            mockData.trailers.forEach(trailer => {
+                const option = document.createElement('option');
+                option.value = trailer.id;
+                option.textContent = trailer.name;
+                newTrailerSelect.appendChild(option);
+            });
+
+            const newProjectSelect = document.getElementById('newProjectId');
+            mockData.projects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project.id;
+                option.textContent = project.name;
+                newProjectSelect.appendChild(option);
+            });
+
+            const newStatusSelect = document.getElementById('newStatus');
+            STATUS_OPTIONS.forEach(status => {
+                const option = document.createElement('option');
+                option.value = status;
+                option.textContent = status;
+                newStatusSelect.appendChild(option);
+            });
+
+            // Populate edit-dispatch selects
+            const editDriverSelect = document.getElementById('editDriverId');
+            mockData.drivers.forEach(driver => {
+                const option = document.createElement('option');
+                option.value = driver.id;
+                option.textContent = driver.name;
+                editDriverSelect.appendChild(option);
+            });
+
+            const editTruckSelect = document.getElementById('editTruckId');
+            mockData.trucks.forEach(truck => {
+                const option = document.createElement('option');
+                option.value = truck.id;
+                option.textContent = truck.name;
+                editTruckSelect.appendChild(option);
+            });
+
+            const editTrailerSelect = document.getElementById('editTrailerId');
+            mockData.trailers.forEach(trailer => {
+                const option = document.createElement('option');
+                option.value = trailer.id;
+                option.textContent = trailer.name;
+                editTrailerSelect.appendChild(option);
+            });
+
+            const editProjectSelect = document.getElementById('editProjectId');
+            mockData.projects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project.id;
+                option.textContent = project.name;
+                editProjectSelect.appendChild(option);
+            });
+
+            const editStatusSelect = document.getElementById('editStatus');
+            STATUS_OPTIONS.forEach(status => {
+                const option = document.createElement('option');
+                option.value = status;
+                option.textContent = status;
+                editStatusSelect.appendChild(option);
+            });
+
+            // Populate batch selects
+            const batchStatusSelect = document.getElementById('batchStatus');
+            STATUS_OPTIONS.forEach(status => {
+                const option = document.createElement('option');
+                option.value = status;
+                option.textContent = status;
+                batchStatusSelect.appendChild(option);
+            });
+
+            const batchDriverSelect = document.getElementById('batchDriverId');
+            mockData.drivers.forEach(driver => {
+                const option = document.createElement('option');
+                option.value = driver.id;
+                option.textContent = driver.name;
+                batchDriverSelect.appendChild(option);
+            });
+
+            const batchTruckSelect = document.getElementById('batchTruckId');
+            mockData.trucks.forEach(truck => {
+                const option = document.createElement('option');
+                option.value = truck.id;
+                option.textContent = truck.name;
+                batchTruckSelect.appendChild(option);
+            });
+
+            const batchTrailerSelect = document.getElementById('batchTrailerId');
+            mockData.trailers.forEach(trailer => {
+                const option = document.createElement('option');
+                option.value = trailer.id;
+                option.textContent = trailer.name;
+                batchTrailerSelect.appendChild(option);
+            });
+
+            const batchProjectSelect = document.getElementById('batchProjectId');
+            mockData.projects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project.id;
+                option.textContent = project.name;
+                batchProjectSelect.appendChild(option);
+            });
+
+            // Enable/disable batch controls based on checkboxes
+            setupBatchToggle('batchChangeDate', 'batchDispatchDate');
+            setupBatchToggle('batchChangeStatus', 'batchStatus');
+            setupBatchToggle('batchChangeDriver', 'batchDriverId');
+            setupBatchToggle('batchChangeTruck', 'batchTruckId');
+            setupBatchToggle('batchChangeTrailer', 'batchTrailerId');
+            setupBatchToggle('batchChangeProject', 'batchProjectId');
+            setupBatchToggle('batchChangeNotes', 'batchNotes');
+
+            // Set default values for create modal
+            const today = new Date();
+            const isoToday = today.toISOString().split('T')[0];
+            document.getElementById('newDispatchDate').value = isoToday;
+            newStatusSelect.value = 'Draft';
+
+            // Set default dates for filters (last 7 days)
+            const sevenDaysAgo = new Date(today);
+            sevenDaysAgo.setDate(today.getDate() - 7);
+            document.getElementById('dateTo').valueAsDate = today;
+            document.getElementById('dateFrom').valueAsDate = sevenDaysAgo;
+
+            // Set default group by = status
+            document.getElementById('groupBy').value = 'status';
+
+            // Event listeners
+            document.getElementById('dateFrom').addEventListener('change', applyFilters);
+            document.getElementById('dateTo').addEventListener('change', applyFilters);
+            document.getElementById('projectFilter').addEventListener('change', applyFilters);
+            document.getElementById('driverFilter').addEventListener('change', applyFilters);
+            document.getElementById('searchInput').addEventListener('input', applyFilters);
+            document.getElementById('sortBy').addEventListener('change', applyFilters);
+            document.getElementById('groupBy').addEventListener('change', (e) => {
+                currentGroupBy = e.target.value;
+                applyFilters();
+            });
+            document.querySelectorAll('.status-check').forEach(checkbox => {
+                checkbox.addEventListener('change', applyFilters);
+            });
+            document.querySelectorAll('.btn-view').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.btn-view').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    currentView = e.target.dataset.view;
+                    renderDispatch();
+                });
+            });
+            document.getElementById('selectAll').addEventListener('change', (e) => {
+                document.querySelectorAll('tbody input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.checked = e.target.checked;
+                    updateSelectedCount();
+                });
+            });
+            document.getElementById('deleteBtn').addEventListener('click', deleteSelected);
+            document.getElementById('updateBtn').addEventListener('click', openBatchModal);
+            document.getElementById('duplicateBtn').addEventListener('click', duplicateSelected);
+
+            // New Dispatch button
+            document.getElementById('newDispatchBtn').addEventListener('click', openCreateModal);
+            document.getElementById('createForm').addEventListener('submit', handleCreateSubmit);
+            document.getElementById('editForm').addEventListener('submit', handleEditSubmit);
+            document.getElementById('batchForm').addEventListener('submit', handleBatchSubmit);
+
+            // Modal overlay click to close
+            document.getElementById('detailModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('detailModal')) {
+                    closeModal();
+                }
+            });
+            document.getElementById('createModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('createModal')) {
+                    closeCreateModal();
+                }
+            });
+            document.getElementById('editModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('editModal')) {
+                    closeEditModal();
+                }
+            });
+            document.getElementById('batchModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('batchModal')) {
+                    closeBatchModal();
+                }
+            });
+
+            // Sidebar collapse toggle
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+            });
+
+            // Initial render (empty state)
+            applyFilters();
+        }
+
+        function setupBatchToggle(toggleId, controlId) {
+            const toggle = document.getElementById(toggleId);
+            const control = document.getElementById(controlId);
+            toggle.addEventListener('change', () => {
+                control.disabled = !toggle.checked;
+            });
+        }
+
+        // ========== FILTERING ==========
+        function applyFilters() {
+            const dateFrom = document.getElementById('dateFrom').valueAsDate;
+            const dateTo = document.getElementById('dateTo').valueAsDate;
+            const projectId = document.getElementById('projectFilter').value;
+            const driverId = document.getElementById('driverFilter').value;
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const selectedStatuses = Array.from(document.querySelectorAll('.status-check:checked')).map(cb => cb.value);
+
+            filteredDispatches = dispatches.filter(dispatch => {
+                let passed = true;
+
+                if (dateFrom && dispatch.dispatchDate < dateFrom) passed = false;
+                if (dateTo) {
+                    const nextDay = new Date(dateTo);
+                    nextDay.setDate(nextDay.getDate() + 1);
+                    if (dispatch.dispatchDate >= nextDay) passed = false;
+                }
+
+                if (projectId && dispatch.projectId !== projectId) passed = false;
+                if (driverId && dispatch.driverId !== driverId) passed = false;
+                if (!selectedStatuses.includes(dispatch.status)) passed = false;
+
+                if (searchText) {
+                    const searchableText = `${dispatch.id} ${getDriverName(dispatch.driverId)} ${getTruckName(dispatch.truckId)} ${getProjectName(dispatch.projectId)} ${dispatch.material} ${dispatch.dispatchNotes}`.toLowerCase();
+                    if (!searchableText.includes(searchText)) passed = false;
+                }
+
+                return passed;
+            });
+
+            const sortBy = document.getElementById('sortBy').value;
+            sortDispatches(sortBy);
+
+            selectedDispatches.clear();
+            updateSelectedCount();
+            renderDispatch();
+        }
+
+        function sortDispatches(sortBy) {
+            const sortFns = {
+                dateNewest: (a, b) => b.dispatchDate - a.dispatchDate,
+                dateOldest: (a, b) => a.dispatchDate - b.dispatchDate,
+                driverAz: (a, b) => getDriverName(a.driverId).localeCompare(getDriverName(b.driverId)),
+                projectAz: (a, b) => getProjectName(a.projectId).localeCompare(getProjectName(b.projectId))
+            };
+
+            if (sortFns[sortBy]) {
+                filteredDispatches.sort(sortFns[sortBy]);
+            }
+        }
+
+        // ========== GROUPING & RENDERING ==========
+        function groupDispatch(dispatch, groupByField) {
+            if (groupByField === 'none') return 'All Dispatches';
+            if (groupByField === 'status') return dispatch.status;
+            if (groupByField === 'driver') return getDriverName(dispatch.driverId);
+            if (groupByField === 'truck') return getTruckName(dispatch.truckId);
+            if (groupByField === 'trailer') return getTrailerName(dispatch.trailerId);
+            if (groupByField === 'project') return getProjectName(dispatch.projectId);
+            return 'Other';
+        }
+
+        function renderDispatch() {
+            if (filteredDispatches.length === 0) {
+                document.getElementById('listView').classList.add('visible');
+                document.getElementById('boardView').classList.remove('visible');
+                document.getElementById('emptyState').style.display = 'block';
+                const tableBody = document.getElementById('tableBody');
+                tableBody.innerHTML = '';
+                return;
+            }
+
+            document.getElementById('emptyState').style.display = 'none';
+
+            if (currentView === 'list') {
+                document.getElementById('listView').classList.add('visible');
+                document.getElementById('boardView').classList.remove('visible');
+                renderListView();
+            } else {
+                document.getElementById('listView').classList.remove('visible');
+                document.getElementById('boardView').classList.add('visible');
+                renderBoardView();
+            }
+        }
+
+        function renderListView() {
+    const tableBody = document.getElementById('tableBody');
+    tableBody.innerHTML = '';
+
+    if (currentGroupBy === 'none') {
+        filteredDispatches.forEach(dispatch => {
+            tableBody.appendChild(createTableRow(dispatch));
+        });
+    } else {
+        const groups = {};
+        filteredDispatches.forEach(dispatch => {
+            const groupKey = groupDispatch(dispatch, currentGroupBy);
+            if (!groups[groupKey]) groups[groupKey] = [];
+            groups[groupKey].push(dispatch);
+        });
+
+        Object.keys(groups).sort().forEach(groupKey => {
+            // Group header row with "select all in group" checkbox
+            const headerRow = document.createElement('tr');
+            headerRow.className = 'group-header';
+            headerRow.innerHTML = `
+                <td>
+                    <input type="checkbox" class="group-select" data-group="${groupKey}">
+                </td>
+                <td colspan="16">
+                    <strong>${groupKey}</strong> (${groups[groupKey].length})
+                </td>
+            `;
+            tableBody.appendChild(headerRow);
+
+            // Group rows, tagged with data-group
+            groups[groupKey].forEach(dispatch => {
+                const row = createTableRow(dispatch);
+                row.dataset.group = groupKey;
+                tableBody.appendChild(row);
+            });
+        });
+    }
+
+    // Row click / selection
+    document.querySelectorAll('tbody tr:not(.group-header)').forEach(row => {
+        const checkbox = row.querySelector('input[type="checkbox"]');
+        checkbox?.addEventListener('change', updateSelectedCount);
+        row.addEventListener('click', (e) => {
+            if (e.target.type !== 'checkbox') {
+                const dispatchId = row.dataset.id;
+                const dispatch = dispatches.find(d => d.id === dispatchId);
+                if (dispatch) openEditModal(dispatch);
+            }
+        });
+        row.style.cursor = 'pointer';
+    });
+
+    // Group "select all" behavior
+    document.querySelectorAll('.group-select').forEach(groupCheckbox => {
+        groupCheckbox.addEventListener('change', (e) => {
+            const groupKey = e.target.dataset.group;
+            const checked = e.target.checked;
+
+            // Toggle all checkboxes in this group
+            document.querySelectorAll('tbody tr').forEach(row => {
+                if (row.dataset.group === groupKey) {
+                    const cb = row.querySelector('input[type="checkbox"]');
+                    if (cb) cb.checked = checked;
+                }
+            });
+
+            updateSelectedCount();
+        });
+    });
+}
+
+
+        function createTableRow(dispatch) {
+            const row = document.createElement('tr');
+            row.dataset.id = dispatch.id;
+            row.innerHTML = `
+                <td><input type="checkbox" value="${dispatch.id}" /></td>
+                <td>${dispatch.id}</td>
+                <td>${dispatch.dispatchDate.toLocaleDateString()}</td>
+                <td><span class="status-badge status-${dispatch.status.toLowerCase().replace(' ', '-')}">${dispatch.status}</span></td>
+                <td>${getDriverName(dispatch.driverId)}</td>
+                <td>${getTruckName(dispatch.truckId)}</td>
+                <td>${getTrailerName(dispatch.trailerId)}</td>
+                <td>${getProjectName(dispatch.projectId)}</td>
+                <td>${dispatch.loadSite}</td>
+                <td>${dispatch.dumpSite}</td>
+                <td>${dispatch.material}</td>
+                <td>${dispatch.precheckTime}</td>
+                <td>${dispatch.leaveYardTime}</td>
+                <td>${dispatch.onJobTime}</td>
+                <td>${dispatch.siteContact}</td>
+                <td><span class="text-truncate" title="${dispatch.dispatchNotes}">${dispatch.dispatchNotes}</span></td>
+                <td>${dispatch.ticketId || '—'}</td>
+            `;
+            return row;
+        }
+
+        function renderBoardView() {
+            const boardView = document.getElementById('boardView');
+            boardView.innerHTML = '';
+
+            const groups = {};
+            filteredDispatches.forEach(dispatch => {
+                const groupKey = groupDispatch(dispatch, currentGroupBy);
+                if (!groups[groupKey]) groups[groupKey] = [];
+                groups[groupKey].push(dispatch);
+            });
+
+            Object.keys(groups).sort().forEach(groupKey => {
+                const column = document.createElement('div');
+                column.className = 'board-column';
+                column.innerHTML = `
+                    <div class="board-column-header">
+                        <div class="column-title">
+                            <span>${groupKey}</span>
+                            <span class="column-count">${groups[groupKey].length}</span>
+                        </div>
+                    </div>
+                    <div class="board-column-content"></div>
+                `;
+
+                const content = column.querySelector('.board-column-content');
+                groups[groupKey].forEach(dispatch => {
+                    const card = document.createElement('div');
+                    card.className = 'dispatch-card';
+                    card.innerHTML = `
+                        <div class="card-id">${dispatch.id}</div>
+                        <div class="card-project">${getProjectName(dispatch.projectId)}</div>
+                        <div class="card-meta">
+                            <div><strong>${getDriverName(dispatch.driverId)}</strong></div>
+                            <div>${getTruckName(dispatch.truckId)}</div>
+                            <div>${dispatch.dispatchDate.toLocaleDateString()}</div>
+                        </div>
+                        ${dispatch.dispatchNotes ? `<div class="card-notes">${dispatch.dispatchNotes}</div>` : ''}
+                    `;
+                    card.addEventListener('click', () => openEditModal(dispatch));
+                    content.appendChild(card);
+                });
+
+                boardView.appendChild(column);
+            });
+        }
+
+        // ========== HELPER FUNCTIONS ==========
+        function getDriverName(driverId) {
+            return mockData.drivers.find(d => d.id === driverId)?.name || 'Unknown';
+        }
+
+        function getTruckName(truckId) {
+            return mockData.trucks.find(t => t.id === truckId)?.name || 'Unknown';
+        }
+
+        function getTrailerName(trailerId) {
+            return mockData.trailers.find(t => t.id === trailerId)?.name || 'Unknown';
+        }
+
+        function getProjectName(projectId) {
+            return mockData.projects.find(p => p.id === projectId)?.name || 'Unknown';
+        }
+
+        function updateSelectedCount() {
+    const checked = document.querySelectorAll('tbody input[type="checkbox"]:checked').length;
+    selectedDispatches.clear();
+    document.querySelectorAll('tbody input[type="checkbox"]:checked').forEach(checkbox => {
+        selectedDispatches.add(checkbox.value);
+    });
+
+    // Reset group header checkboxes so they don't get out of sync
+    document.querySelectorAll('.group-select').forEach(cb => {
+        cb.checked = false;
+    });
+
+    const batchActions = document.getElementById('batchActions');
+    if (checked > 0) {
+        batchActions.classList.add('visible');
+        document.getElementById('selectedCount').textContent = checked;
+    } else {
+        batchActions.classList.remove('visible');
+    }
+}
+
+        function deleteSelected() {
+            if (selectedDispatches.size === 0) return;
+            dispatches = dispatches.filter(d => !selectedDispatches.has(d.id));
+            selectedDispatches.clear();
+            document.getElementById('selectAll').checked = false;
+            applyFilters();
+        }
+
+        function duplicateSelected() {
+    if (selectedDispatches.size === 0) return;
+
+    const newDispatches = [];
+
+    dispatches.forEach(d => {
+        if (!selectedDispatches.has(d.id)) return;
+
+        const clone = {
+            ...d,
+            id: generateNewDispatchId(),      // new Dispatch ID
+            dispatchDate: new Date(d.dispatchDate), // copy date
+            status: 'Draft',                  // NEW: duplicated dispatches start as Draft
+            ticketId: ''                      // optional: clear ticket link on duplicates
+        };
+
+        newDispatches.push(clone);
+    });
+
+    dispatches = dispatches.concat(newDispatches);
+
+    // Clear selection so we don't keep duplicating the same ones
+    selectedDispatches.clear();
+    document.getElementById('selectAll').checked = false;
+    applyFilters();
+}
+
+        // ========== MODALS ==========
+        function showDetailModal(dispatch) {
+            const modalBody = document.getElementById('modalBody');
+            modalBody.innerHTML = `
+                <div class="modal-field"><div class="modal-label">Dispatch ID</div><div class="modal-value">${dispatch.id}</div></div>
+                <div class="modal-field"><div class="modal-label">Dispatch Date</div><div class="modal-value">${dispatch.dispatchDate.toLocaleDateString()}</div></div>
+                <div class="modal-field"><div class="modal-label">Driver</div><div class="modal-value">${getDriverName(dispatch.driverId)}</div></div>
+                <div class="modal-field"><div class="modal-label">Truck</div><div class="modal-value">${getTruckName(dispatch.truckId)}</div></div>
+                <div class="modal-field"><div class="modal-label">Trailer</div><div class="modal-value">${getTrailerName(dispatch.trailerId)}</div></div>
+                <div class="modal-field"><div class="modal-label">Project</div><div class="modal-value">${getProjectName(dispatch.projectId)}</div></div>
+                <div class="modal-field"><div class="modal-label">Load Site</div><div class="modal-value">${dispatch.loadSite}</div></div>
+                <div class="modal-field"><div class="modal-label">Dump Site</div><div class="modal-value">${dispatch.dumpSite}</div></div>
+                <div class="modal-field"><div class="modal-label">Material</div><div class="modal-value">${dispatch.material}</div></div>
+                <div class="modal-field"><div class="modal-label">Precheck Time</div><div class="modal-value">${dispatch.precheckTime}</div></div>
+                <div class="modal-field"><div class="modal-label">Leave Yard Time</div><div class="modal-value">${dispatch.leaveYardTime}</div></div>
+                <div class="modal-field"><div class="modal-label">On Job Time</div><div class="modal-value">${dispatch.onJobTime}</div></div>
+                <div class="modal-field"><div class="modal-label">Site Contact</div><div class="modal-value">${dispatch.siteContact}</div></div>
+                <div class="modal-field"><div class="modal-label">Status</div><div class="modal-value"><span class="status-badge status-${dispatch.status.toLowerCase().replace(' ', '-')}">${dispatch.status}</span></div></div>
+                <div class="modal-field"><div class="modal-label">Ticket ID</div><div class="modal-value">${dispatch.ticketId || '—'}</div></div>
+                <div class="modal-field full"><div class="modal-label">Dispatch Notes</div><div class="modal-value">${dispatch.dispatchNotes}</div></div>
+            `;
+            document.getElementById('detailModal').classList.add('visible');
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('visible');
+        }
+
+        function openCreateModal() {
+            document.getElementById('createModal').classList.add('visible');
+        }
+
+        function closeCreateModal() {
+            document.getElementById('createModal').classList.remove('visible');
+        }
+
+        function openEditModal(dispatch) {
+            editingDispatchId = dispatch.id;
+
+            const isoDate = dispatch.dispatchDate.toISOString().split('T')[0];
+            document.getElementById('editDispatchDate').value = isoDate;
+            document.getElementById('editStatus').value = dispatch.status;
+            document.getElementById('editDriverId').value = dispatch.driverId;
+            document.getElementById('editTruckId').value = dispatch.truckId;
+            document.getElementById('editTrailerId').value = dispatch.trailerId;
+            document.getElementById('editProjectId').value = dispatch.projectId;
+            document.getElementById('editNotes').value = dispatch.dispatchNotes || '';
+
+            document.getElementById('editModal').classList.add('visible');
+        }
+
+        function closeEditModal() {
+            editingDispatchId = null;
+            document.getElementById('editModal').classList.remove('visible');
+        }
+
+        function openBatchModal() {
+            if (selectedDispatches.size === 0) return;
+            document.getElementById('batchCountLabel').textContent = selectedDispatches.size;
+
+            ['batchChangeDate','batchChangeStatus','batchChangeDriver','batchChangeTruck','batchChangeTrailer','batchChangeProject','batchChangeNotes'].forEach(id => {
+                const cb = document.getElementById(id);
+                cb.checked = false;
+            });
+            ['batchDispatchDate','batchStatus','batchDriverId','batchTruckId','batchTrailerId','batchProjectId','batchNotes'].forEach(id => {
+                const ctrl = document.getElementById(id);
+                ctrl.disabled = true;
+                if (ctrl.tagName === 'TEXTAREA') ctrl.value = '';
+            });
+
+            document.getElementById('batchModal').classList.add('visible');
+        }
+
+        function closeBatchModal() {
+            document.getElementById('batchModal').classList.remove('visible');
+        }
+
+        // ========== FORM HANDLERS ==========
+        function handleCreateSubmit(e) {
+            e.preventDefault();
+
+            const dateValue = document.getElementById('newDispatchDate').value;
+            const status = document.getElementById('newStatus').value;
+            const driverId = document.getElementById('newDriverId').value;
+            const truckId = document.getElementById('newTruckId').value;
+            const trailerId = document.getElementById('newTrailerId').value;
+            const projectId = document.getElementById('newProjectId').value;
+            const notes = document.getElementById('newNotes').value;
+
+            if (!dateValue) {
+                alert('Please select a dispatch date.');
+                return;
+            }
+
+            const dispatchDate = new Date(dateValue);
+            const project = mockData.projects.find(p => p.id === projectId) || {};
+
+            const newDispatch = {
+                id: generateNewDispatchId(),
+                dispatchDate,
+                driverId,
+                truckId,
+                trailerId,
+                projectId,
+                loadSite: project.loadSite || '',
+                dumpSite: project.dumpSite || '',
+                material: project.material || '',
+                precheckTime: '06:00 AM',
+                leaveYardTime: '06:15 AM',
+                onJobTime: '07:00 AM',
+                siteContact: project.siteContact || '',
+                dispatchNotes: notes || '',
+                status,
+                ticketId: ''
+            };
+
+            dispatches.push(newDispatch);
+            closeCreateModal();
+            applyFilters();
+        }
+
+        function handleEditSubmit(e) {
+            e.preventDefault();
+            if (!editingDispatchId) return;
+
+            const dispatch = dispatches.find(d => d.id === editingDispatchId);
+            if (!dispatch) return;
+
+            const dateValue = document.getElementById('editDispatchDate').value;
+            if (!dateValue) {
+                alert('Please select a dispatch date.');
+                return;
+            }
+
+            dispatch.dispatchDate = new Date(dateValue);
+            dispatch.status = document.getElementById('editStatus').value;
+            dispatch.driverId = document.getElementById('editDriverId').value;
+            dispatch.truckId = document.getElementById('editTruckId').value;
+            dispatch.trailerId = document.getElementById('editTrailerId').value;
+
+            const projectId = document.getElementById('editProjectId').value;
+            dispatch.projectId = projectId;
+            const project = mockData.projects.find(p => p.id === projectId) || {};
+
+            dispatch.loadSite = project.loadSite || '';
+            dispatch.dumpSite = project.dumpSite || '';
+            dispatch.material = project.material || '';
+            dispatch.siteContact = project.siteContact || '';
+            dispatch.dispatchNotes = document.getElementById('editNotes').value || '';
+
+            closeEditModal();
+            applyFilters();
+        }
+
+        function handleBatchSubmit(e) {
+            e.preventDefault();
+            if (selectedDispatches.size === 0) {
+                closeBatchModal();
+                return;
+            }
+
+            const changeDate = document.getElementById('batchChangeDate').checked;
+            const changeStatus = document.getElementById('batchChangeStatus').checked;
+            const changeDriver = document.getElementById('batchChangeDriver').checked;
+            const changeTruck = document.getElementById('batchChangeTruck').checked;
+            const changeTrailer = document.getElementById('batchChangeTrailer').checked;
+            const changeProject = document.getElementById('batchChangeProject').checked;
+            const changeNotes = document.getElementById('batchChangeNotes').checked;
+
+            const dateValue = document.getElementById('batchDispatchDate').value;
+            const newStatus = document.getElementById('batchStatus').value;
+            const newDriverId = document.getElementById('batchDriverId').value;
+            const newTruckId = document.getElementById('batchTruckId').value;
+            const newTrailerId = document.getElementById('batchTrailerId').value;
+            const newProjectId = document.getElementById('batchProjectId').value;
+            const newNotes = document.getElementById('batchNotes').value;
+
+            if (changeDate && !dateValue) {
+                alert('Please select a date for the batch update.');
+                return;
+            }
+
+            dispatches.forEach(d => {
+                if (!selectedDispatches.has(d.id)) return;
+
+                if (changeDate) d.dispatchDate = new Date(dateValue);
+                if (changeStatus) d.status = newStatus;
+                if (changeDriver) d.driverId = newDriverId;
+                if (changeTruck) d.truckId = newTruckId;
+                if (changeTrailer) d.trailerId = newTrailerId;
+
+                if (changeProject) {
+                    d.projectId = newProjectId;
+                    const project = mockData.projects.find(p => p.id === newProjectId) || {};
+                    d.loadSite = project.loadSite || '';
+                    d.dumpSite = project.dumpSite || '';
+                    d.material = project.material || '';
+                    d.siteContact = project.siteContact || '';
+                }
+
+                if (changeNotes) d.dispatchNotes = newNotes || '';
+            });
+
+            closeBatchModal();
+            applyFilters();
+        }
+
+        // ========== INIT ==========
+        initializeUI();
+    </script>
+</body>
+</html>
